@@ -1,8 +1,12 @@
 package services;
 
+import io.qameta.allure.Allure;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.internal.RequestSpecificationImpl;
 import io.restassured.response.Response;
-import org.testng.annotations.AfterClass;
+import io.restassured.specification.RequestSpecification;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -64,12 +68,25 @@ public class Booking {
 
     @Test(priority = 2)
     public void getBooking (){
+        String baseUrl ="https://restful-booker.herokuapp.com/booking";
+
+        RequestSpecification requestSpecification = RestAssured.given().log().all();
+
+        Response response = requestSpecification
+                                                .log().all()
+                                                .when().get(baseUrl);
+        attachment(requestSpecification,baseUrl,response);
+        Assert.assertEquals(response.getStatusCode(),200);
+
+        /*
         given()
                 .log().all()
                 .when()
                 .get("https://restful-booker.herokuapp.com/booking")
                 .then().statusCode(200)
                 .log().all();
+
+         */
     }
 
     @DataProvider(name = "dataProvider")
@@ -145,4 +162,17 @@ public class Booking {
                 .then().statusCode(201)
                 .log().all();
     }
+
+    public String attachment(RequestSpecification httpRequest, String baseUrl, Response response){
+
+        String html = "Url= " + baseUrl + "\n\n" +
+                "request header=" +((RequestSpecificationImpl) httpRequest).getHeaders() + "\n\n" +
+                "request body=" +((RequestSpecificationImpl) httpRequest).getBody() + "\n\n" +
+                "response body=" + response.getBody().asString();
+
+                Allure.addAttachment("request detail", html);
+                return html;
+    }
+
+
 }
